@@ -6,34 +6,41 @@ enum Player {
 }
 
 export class Game {
-  static player: Player = Player.User;
+  private readonly onGameChange = new LiteEvent<void>();
+  public get GameChanged() { return this.onGameChange.expose() }
+  public changeHandler? : VoidFunction | null
+
+  static player: Player = Player.User
   board: GameBoard = new GameBoard()
 
   constructor() {
     print("Initialising game")
   }
+
+  public registerListener(func: VoidFunction) {
+    print("registered listener!")
+    this.board.slots.forEach(item => {
+      item.SlotChanged.on(func)
+    })
+  }
 }
 
+
 export class GameBoard {
+  private readonly onBoardChange = new LiteEvent<void>();
+  public get BoardChanged() { return this.onBoardChange.expose() }
+
   // board
   numberOfRows = 6
   numberOfColumns = 7
 
-  private slots: GameSlot[] = []
+  slots: GameSlot[] = []
   
   constructor() {
     this.setup()
 
     this.printBoard()
-
-    let chosenSlot = this.chooseSlot(4, 5)
-    if (chosenSlot) {
-      // evaluate for connect four
-      // switch player
-    }
-
   }
-
   // life cycle
   setup() {
     for (let s = 0; s < this.numberOfRows; s++) {
@@ -50,7 +57,7 @@ export class GameBoard {
 
   // Function is probably unnecessary
   private chooseSlot(rowIndex: number, columnIndex: number): GameSlot | null {
-    let chosenSlot = this.slots.find(item => item.rowIndex == rowIndex && item.colIndex == columnIndex )
+    let chosenSlot = this.slots.find(item => item.rowIndex === rowIndex && item.colIndex === columnIndex )
 
     if (chosenSlot) {
       print(`Chose slot at ${chosenSlot.desc}`)
@@ -62,7 +69,6 @@ export class GameBoard {
 
     return null
   }
-
 
   chooseColumn(selectedSlot: GameSlot) {
     let col = this.columnFromSlot(selectedSlot)
@@ -96,7 +102,7 @@ export class GameBoard {
   private checkForConnectFour(newSlot: GameSlot, arr: GameSlot[], isRow: Boolean): Boolean {
     let count = 1
     let filled = arr
-      .filter(slot => slot.filledBy == newSlot.filledBy)
+      .filter(slot => slot.filledBy === newSlot.filledBy)
       .map(item => {
         // flip around values when dealing with rows
         return new SlotInArray(isRow ? item.rowIndex : item.colIndex, isRow ? item.colIndex : item.rowIndex)
@@ -108,7 +114,7 @@ export class GameBoard {
     }
 
     for (var i = 1; i < filled.length; i++) {
-      if (filled[i].locationIndex - filled[i-1].locationIndex != 1 ) {
+      if (filled[i].locationIndex - filled[i-1].locationIndex !== 1 ) {
         return false
       } 
       count ++
@@ -188,12 +194,13 @@ export class GameBoard {
 
 }
 
-enum SlotState {
-  Empty, Filled
-}
-
 export class GameSlot {
-  filledBy: Player | null = null
+  private readonly onSlotChange = new LiteEvent<void>();
+  public get SlotChanged() { return this.onSlotChange.expose() }
+
+  // filledBy: Player | null = null
+  private player: Player | null = null
+
   rowIndex: number
   colIndex: number
 
@@ -210,8 +217,19 @@ export class GameSlot {
   get desc(): string {
     let empty = `${this.rowIndex}${this.colLetter}`
     let filled = "  "
-    return `[${this,this.filledBy === null ? empty : filled }]`;
+    return `[${this.player === null ? empty : filled }]`;
   } 
+
+  get filledBy(): Player | null {
+    return this.player
+  }
+
+  set filledBy(setPlayer: Player | null)  {
+    print("filledBy is set")
+
+    this.player = setPlayer
+    this.onSlotChange.trigger()
+  }
 }
 
 // TODO: Consider if necessary
@@ -222,5 +240,31 @@ class SlotInArray {
   constructor(index: number, locationIndex: number) {
     this.index = index // row index
     this.locationIndex = locationIndex
+  }
+}
+
+/// Events related stuff
+interface ILiteEvent<T> {
+  on(handler: { (data?: T): void }) : void;
+  off(handler: { (data?: T): void }) : void;
+}
+
+class LiteEvent<T> implements ILiteEvent<T> {
+  private handlers: { (data?: T): void; }[] = [];
+
+  public on(handler: { (data?: T): void }) : void {
+      this.handlers.push(handler);
+  }
+
+  public off(handler: { (data?: T): void }) : void {
+      this.handlers = this.handlers.filter(h => h !== handler);
+  }
+
+  public trigger(data?: T) {
+      this.handlers.slice(0).forEach(h => h(data));
+  }
+
+  public expose() : ILiteEvent<T> {
+      return this;
   }
 }
