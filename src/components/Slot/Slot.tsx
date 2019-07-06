@@ -23,25 +23,28 @@ export class Slot extends React.Component <{ game: Game, board: GameBoard, slot:
   }
 
   render() {
-    var filledClass = ""
+    var playerClass = ""
+    let animationClass = ""
 
     switch(this.slot.filledBy) {
       case Player.Computer:
-        filledClass = " filled computer"
+        playerClass = " filled computer"
+        animationClass = " animateToken"
         break;
       case Player.User:
-        filledClass = " filled user"
+        playerClass = " filled user"
+        animationClass = " animateToken"
         break;
     }
-    
-    // this.slot.filledBy === Player.Computer
 
     return (
       <div
-        className={`slot${filledClass}`}
+        className={`slot${playerClass}`}
         onClick={this.handleSlotClick.bind(this)} 
       >
-        <div className="slotContents"></div>
+        <div className="slotContents">
+          <div className={`token${animationClass}`}></div>
+        </div>
   
       </div>
     );
