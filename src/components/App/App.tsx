@@ -18,11 +18,10 @@ class App extends React.Component<{}, {game: Game}>{
   }
 
   updateOnGameChange() {
-    console.log("update on game change??")
-
+    console.log("1 update on game change")
     this.setState((state, props) => ({
       game: state.game
-    }))
+    }), () => console.log("2 set state finished"))
   }
   
   render() {

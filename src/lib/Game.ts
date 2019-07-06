@@ -1,29 +1,122 @@
 const print = console.log;
 
-enum Player {
+export enum Player {
   User, 
   Computer
 }
 
 export class Game {
-  private readonly onGameChange = new LiteEvent<void>();
+  private readonly onGameChange = new LiteEvent<Player>();
   public get GameChanged() { return this.onGameChange.expose() }
   public changeHandler? : VoidFunction | null
 
   static player: Player = Player.User
+  static winner?: Player | null 
+
   board: GameBoard = new GameBoard()
 
   constructor() {
+    let self = this
     print("Initialising game")
+
+    // game logic
+    this.onGameChange.on(nextPlayer => {
+      if (nextPlayer) {
+        self.delayComputerTurn(nextPlayer)
+      }
+    })
+  }
+
+  restartGame() {
+    Game.player = Player.User
+
+    this.board.slots.map(item => {
+      let itemCopy = item
+      itemCopy.filledBy = null
+      return itemCopy
+    }, this)
+  }
+
+  placeTotemInColumn(selectedSlot: GameSlot) {
+    if (Game.player === Player.User) {
+      this.board.chooseColumn(selectedSlot)
+    } else {
+      print("It's not the user's turn!")
+    }
+  }
+
+  delayComputerTurn(nextPlayer: Player) {
+    let timeout;
+      if (timeout) {
+        // clear if one already exists
+        clearTimeout(timeout) 
+      }
+
+      timeout = setTimeout(() => {
+        this.playComputerTurn(nextPlayer)
+      }, 500)
+  }
+
+  playComputerTurn(nextPlayer: Player) {
+    if (nextPlayer === Player.Computer) {
+      print("COMPUTER'S TURN")
+      let validColumns = this.board.slotsByCol.filter(col => {
+        return col.some(item => item.filledBy !== null)
+      })
+
+      let newSlot = new GameSlot(0, this.getRandomInt(validColumns.length))
+      this.board.chooseColumn(newSlot)
+    }
+  }
+
+  switchToOtherPlayer() {
+    let newPlayer = Player.Computer
+    if (Game.player === Player.Computer) {
+      newPlayer = Player.User
+    }
+
+    Game.player = newPlayer
+    this.onGameChange.trigger(newPlayer)
   }
 
   public registerListener(func: VoidFunction) {
-    print("registered listener!")
     this.board.slots.forEach(item => {
-      item.SlotChanged.on(func)
+      item.SlotChanged.on(slot => {
+        func() // execute the registered function
+
+        if (slot) {
+          // a reset happened, don't continue the game
+          if (slot.filledBy === null) { return }
+
+          this.continueGameOnSlotChange(slot)
+        }
+      })
     })
   }
+
+  continueGameOnSlotChange(slot: GameSlot) {          
+    // check if user has won
+    let winner = this.board.checkIfWon(slot)
+    let boardFull = this.board.slots.every(item => item.filledBy !== null)
+    
+    if (winner === Player.User) {
+      alert("You win!")
+      this.restartGame()
+    } else if (boardFull || winner === Player.Computer) {
+      alert("You lose")
+      this.restartGame()
+    } else {
+      print("GAME CONTINUES")
+      this.switchToOtherPlayer()
+    }
+  }
+
+  getRandomInt(max: number) {
+    return Math.floor(Math.random() * Math.floor(max));
+  }
+
 }
+
 
 
 export class GameBoard {
@@ -38,7 +131,6 @@ export class GameBoard {
   
   constructor() {
     this.setup()
-
     this.printBoard()
   }
   // life cycle
@@ -55,21 +147,6 @@ export class GameBoard {
     this.slots = []
   }
 
-  // Function is probably unnecessary
-  private chooseSlot(rowIndex: number, columnIndex: number): GameSlot | null {
-    let chosenSlot = this.slots.find(item => item.rowIndex === rowIndex && item.colIndex === columnIndex )
-
-    if (chosenSlot) {
-      print(`Chose slot at ${chosenSlot.desc}`)
-      chosenSlot.filledBy = Game.player
-      this.printBoard()
-
-      return chosenSlot
-    }
-
-    return null
-  }
-
   chooseColumn(selectedSlot: GameSlot) {
     let col = this.columnFromSlot(selectedSlot)
     
@@ -80,13 +157,12 @@ export class GameBoard {
 
     if (filledSlot) {
       filledSlot.filledBy = Game.player
-      this.checkIfWon(filledSlot)
     } else {
       print("Error: Couldn't fill slot")
     }
   }
 
-  private checkIfWon(newSlot: GameSlot) {
+  checkIfWon(newSlot: GameSlot): Player | null | Error {
     let potentialWins = [
       this.checkForConnectFour(newSlot, this.rowFromSlot(newSlot), true), // this one relies on row index
       this.checkForConnectFour(newSlot, this.columnFromSlot(newSlot), false),
@@ -95,7 +171,14 @@ export class GameBoard {
     ]
 
     if (potentialWins.some(win => win)) {
-      print(`WINNER!`)
+      if (newSlot.filledBy !== null) {
+        print("WINNER")
+        return newSlot.filledBy
+      } else {
+        return Error("Placed slot isn't owned by a player")
+      }
+    } else {
+      return null
     }
   }
 
@@ -188,6 +271,14 @@ export class GameBoard {
     return arr
   } 
 
+  get slotsByCol(): GameSlot[][] {
+    let arr = []
+    for (var i = 0; i < this.numberOfColumns; i++) {
+      arr.push(this.slots.filter(item => item.colIndex === i))
+    }
+    return arr
+  } 
+
   get numberOfFilledSlots(): number {
     return this.slots.filter(slot => slot.filledBy !== null).length
   } 
@@ -195,7 +286,7 @@ export class GameBoard {
 }
 
 export class GameSlot {
-  private readonly onSlotChange = new LiteEvent<void>();
+  private readonly onSlotChange = new LiteEvent<GameSlot>();
   public get SlotChanged() { return this.onSlotChange.expose() }
 
   // filledBy: Player | null = null
@@ -225,10 +316,8 @@ export class GameSlot {
   }
 
   set filledBy(setPlayer: Player | null)  {
-    print("filledBy is set")
-
     this.player = setPlayer
-    this.onSlotChange.trigger()
+    this.onSlotChange.trigger(this)
   }
 }
 

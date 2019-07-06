@@ -2,28 +2,39 @@ import React from 'react';
 import ReactDOM, { render } from "react-dom";
 import './Slot.css';
 
-import { GameBoard, GameSlot } from '../../lib/Game'
+import { Game, GameBoard, GameSlot, Player } from '../../lib/Game'
 import Board from '../Board/Board';
 
-export class Slot extends React.Component <{ board: GameBoard, slot: GameSlot }> {
+export class Slot extends React.Component <{ game: Game, board: GameBoard, slot: GameSlot }> {
   board: GameBoard
   slot: GameSlot
+  game: Game
 
-  constructor(props: {board: GameBoard, slot: GameSlot}) {
+  constructor(props: {game: Game, board: GameBoard, slot: GameSlot}) {
       super(props);
 
       this.board = this.props.board
       this.slot = this.props.slot
+      this.game = this.props.game
   }
 
   handleSlotClick() {
-    this.board.chooseColumn(this.slot)
-
-    this.board.printBoard()
+    this.game.placeTotemInColumn(this.slot)
   }
 
   render() {
-    let filledClass = this.slot.filledBy !== null ? " filled" : ""
+    var filledClass = ""
+
+    switch(this.slot.filledBy) {
+      case Player.Computer:
+        filledClass = " filled computer"
+        break;
+      case Player.User:
+        filledClass = " filled user"
+        break;
+    }
+    
+    // this.slot.filledBy === Player.Computer
 
     return (
       <div

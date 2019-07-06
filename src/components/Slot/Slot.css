@@ -15,5 +15,13 @@
 }
 
 .slot.filled {
+  background-color: grey
+}
+
+.slot.filled.computer {
   background-color: pink
+}
+
+.slot.filled.user {
+  background-color: mediumaquamarine
 }
