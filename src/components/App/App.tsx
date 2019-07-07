@@ -28,6 +28,11 @@ class App extends React.Component<{}, {game: Game}>{
     return (
       <div className="App">
           <Board game={this.state.game}></Board>
+          <aside className="">
+            <h1>Join Four</h1>
+            <h2>Try to win by joining four red tokens together!</h2>
+            <div className="creditBox"><p>Built by <a href="https://www.linkedin.com/in/iamjessicabarron/" target="_blank">Jessica Barron</a></p></div>
+          </aside>
       </div>
     );
   }

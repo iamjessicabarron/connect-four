@@ -1,6 +1,5 @@
 .slot {
   box-sizing: border-box;
-  border: 3px solid black;
   border-radius: 50%;
   display: inline-block;
 }
@@ -37,7 +36,7 @@
 }
 
 .slot.filled.computer .token {
-  background-color: rgb(157, 174, 57);
+  background-color: #DFDB7F;
 }
 
 .animateToken {

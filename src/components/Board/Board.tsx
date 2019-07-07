@@ -29,11 +29,13 @@ export class Board extends React.Component <{ game: Game }> {
 
     return(
       <div className="boardBg">
-        <div className="boardContainer">
-          <div className="slotsContainer">
-            { slots }
+        <div className="contentContainer">
+          <div className="boardContainer">
+            <div className="slotsContainer">
+              { slots }
+            </div>
+            <img src={BoardImage}></img>
           </div>
-          <img src={BoardImage}></img>
         </div>
         {/* <button 
           onClick={this.handleRestartClick.bind(this)}
