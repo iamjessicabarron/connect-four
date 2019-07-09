@@ -61,11 +61,16 @@ export class Game {
     if (nextPlayer === Player.Computer) {
       print("COMPUTER'S TURN")
       let validColumns = this.board.slotsByCol.filter(col => {
-        return col.some(item => item.filledBy !== null)
+        return col.some(item => item.filledBy === null)
       })
-
-      let newSlot = new GameSlot(0, this.getRandomInt(validColumns.length))
-      this.board.chooseColumn(newSlot)
+      
+      let randomColIndex = this.getRandomInt(validColumns.length)
+      let newSlot = new GameSlot(0, validColumns[randomColIndex][0].colIndex)
+      
+      let didSelectSlot = false
+      while (!didSelectSlot && validColumns.length > 0) {
+        didSelectSlot = this.board.chooseColumn(newSlot)
+      }
     }
   }
 
@@ -99,6 +104,10 @@ export class Game {
     let winner = this.board.checkIfWon(slot)
     let boardFull = this.board.slots.every(item => item.filledBy !== null)
     
+    if (boardFull) {
+      print("BOARD FULL -> Game should restart")
+    }
+
     if (winner === Player.User) {
       alert("You win!")
       this.restartGame()
@@ -107,8 +116,8 @@ export class Game {
       this.restartGame()
     } else {
       print("GAME CONTINUES")
-      this.switchToOtherPlayer()
     }
+    this.switchToOtherPlayer()
   }
 
   getRandomInt(max: number) {
@@ -147,7 +156,7 @@ export class GameBoard {
     this.slots = []
   }
 
-  chooseColumn(selectedSlot: GameSlot) {
+  chooseColumn(selectedSlot: GameSlot): boolean {
     let col = this.columnFromSlot(selectedSlot)
     
     let filledSlot = col
@@ -157,8 +166,10 @@ export class GameBoard {
 
     if (filledSlot) {
       filledSlot.filledBy = Game.player
+      return true
     } else {
       print("Error: Couldn't fill slot")
+      return false
     }
   }
 
@@ -182,7 +193,7 @@ export class GameBoard {
     }
   }
 
-  private checkForConnectFour(newSlot: GameSlot, arr: GameSlot[], isRow: Boolean): Boolean {
+  private checkForConnectFour(newSlot: GameSlot, arr: GameSlot[], isRow: boolean): boolean {
     let count = 1
     let filled = arr
       .filter(slot => slot.filledBy === newSlot.filledBy)
