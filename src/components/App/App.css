@@ -87,3 +87,16 @@ aside h2 {
 } */
 
 /* .credBox a: */
+
+/*When smaller than 1024*/
+@media (max-width: 1024px) {
+  .App aside {
+    width: 100%;
+    height: 350px;
+  }
+
+  .App .boardBg {
+    height: 100vw;
+    width: 100%;
+  }
+}
