@@ -103,28 +103,30 @@ export class Game {
     // check if user has won
     let winner = this.board.checkIfWon(slot)
     let boardFull = this.board.slots.every(item => item.filledBy !== null)
-    
-    if (boardFull) {
-      print("BOARD FULL -> Game should restart")
-    }
 
     if (winner === Player.User) {
-      alert("You win!")
-      this.restartGame()
+      this.showAlertAndRestart("You win!")
     } else if (boardFull || winner === Player.Computer) {
-      alert("You lose")
-      this.restartGame()
+      this.showAlertAndRestart("You lose!")
     } else {
       print("GAME CONTINUES")
     }
     this.switchToOtherPlayer()
   }
 
+  showAlertAndRestart(str: string) {
+    setTimeout(() => {
+      alert(str)
+      this.restartGame()
+    }, 1000);
+
+  }
+
   getRandomInt(max: number) {
     return Math.floor(Math.random() * Math.floor(max));
   }
-
 }
+
 
 
 
