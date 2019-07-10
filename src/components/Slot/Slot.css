@@ -42,3 +42,7 @@
   transform: translateY(0px);
   display: block;
 }
+
+.slot.hover {
+  background-color: rgb(255, 255, 255, 0.5)
+}

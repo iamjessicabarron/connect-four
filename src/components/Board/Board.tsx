@@ -6,10 +6,24 @@ import BoardImage from './Board.svg';
 
 import Slot from '../Slot/Slot'
 
-export class Board extends React.Component <{ game: Game }> {
+export class Board extends React.Component <{ game: Game }, { hover: number | null }> {
+
+  constructor(props: { game: Game}) {
+    super(props);
+    this.state = {
+      hover: null
+    }
+  }
 
   handleRestartClick() {
     this.props.game.restartGame()
+  }
+
+  handleSlotHover(state: boolean, colIndex: number) {
+    console.log("hover", state, colIndex)
+    this.setState({
+      hover: state ? colIndex : null
+    })
   }
 
   render() {
@@ -17,7 +31,7 @@ export class Board extends React.Component <{ game: Game }> {
     let board = game.board
     const slots = board.slotsByRow.map(row => {
       const rowOfSlots = row.map(slot => {
-        return(<Slot game={game} slot={slot} board={game.board} key={slot.rowIndex+slot.colLetter}></Slot>)
+        return(<Slot game={game} slot={slot} board={game.board} key={slot.rowIndex+slot.colLetter} hover={this.state.hover === slot.colIndex} handleHover={this.handleSlotHover.bind(this)}></Slot>)
       })
   
       return(
