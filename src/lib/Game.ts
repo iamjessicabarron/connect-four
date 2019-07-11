@@ -111,8 +111,8 @@ export class Game {
       this.showAlertAndRestart("You lose!")
     } else {
       print("GAME CONTINUES")
+      this.switchToOtherPlayer()
     }
-    this.switchToOtherPlayer()
   }
 
   showAlertAndRestart(str: string) {
