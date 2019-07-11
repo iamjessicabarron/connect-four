@@ -20,7 +20,6 @@ export class Board extends React.Component <{ game: Game }, { hover: number | nu
   }
 
   handleSlotHover(state: boolean, colIndex: number) {
-    console.log("hover", state, colIndex)
     this.setState({
       hover: state ? colIndex : null
     })

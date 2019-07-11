@@ -1,4 +1,5 @@
-const print = console.log;
+let isProduction = process.env.NODE_ENV === "production"
+const print = !isProduction ? console.log : () => {}
 
 export enum Player {
   User, 
