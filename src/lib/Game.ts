@@ -198,23 +198,30 @@ export class GameBoard {
 
   private checkForConnectFour(newSlot: GameSlot, arr: GameSlot[], isRow: boolean): boolean {
     let count = 1
-    let filled = arr
+    let filledSlotsByLocation = arr
       .filter(slot => slot.filledBy === newSlot.filledBy)
+      // need to flip around values to get position of token in row
       .map(item => {
-        // flip around values when dealing with rows
         return new SlotInArray(isRow ? item.rowIndex : item.colIndex, isRow ? item.colIndex : item.rowIndex)
       })
-      .sort((a, b) => a.index - b.index) // double check it's sorted
+       // ensure it's sorted
+      .sort((a, b) => a.index - b.index)
     
-    if (filled.length < 4) {
+    if (filledSlotsByLocation.length < 4) {
       return false
     }
+    
+    // find four in a row
+    for (var i = 1; i < filledSlotsByLocation.length; i++) {
+      let currentLocation = filledSlotsByLocation[i].locationIndex 
+      let previousLocation = filledSlotsByLocation[i-1].locationIndex
 
-    for (var i = 1; i < filled.length; i++) {
-      if (filled[i].locationIndex - filled[i-1].locationIndex !== 1 ) {
-        return false
-      } 
-      count ++
+      if (currentLocation-previousLocation !== 1 ) {
+        // reset if token is not preceded by another filled token
+        count = 1 
+      } else {
+        count ++
+      }
 
       if (count >= 4) {
         return true
